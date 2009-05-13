@@ -89,6 +89,12 @@
 			if($this->_Parent->Configuration->get('show-comments', 'cachelite') == 'yes') $input->setAttribute('checked', 'checked');
 			$label->setValue($input->generate() . ' Show comments in page source?');
 			$group->appendChild($label);
+			
+			$label = Widget::Label();
+			$input = Widget::Input('settings[cachelite][enable-gzip]', 'yes', 'checkbox');
+			if($this->_Parent->Configuration->get('enable-gzip', 'cachelite') == 'yes') $input->setAttribute('checked', 'checked');
+			$label->setValue($input->generate() . ' Enable <a href="http://www.gzip.org/">Gzip</a> compression?');
+			$group->appendChild($label);
 			$context['wrapper']->appendChild($group);
 		}
 		
@@ -146,7 +152,22 @@
 			$logged_in = $frontend->isLoggedIn();
 			if ( ! $logged_in)
 			{
+				# Start Gzipping things
+				if ($this->_get_compression_pref() == 'yes') ob_start("ob_gzhandler");
+				
 				$render = $output['output'];
+				header(sprintf("Content-Length: %d", strlen($render)));
+				print $render;
+				if ($this->_get_comment_pref() == 'yes') echo "<!-- Cache generated: ". $cl->_fileName	." -->";
+				
+				# Clean up the Gzip stuff
+				if ($this->_get_compression_pref() == 'yes') 
+				{
+					$render = ob_get_contents();
+					ob_end_flush();
+				}
+				
+				# Save the cache
 				$url = getCurrentPage();
 				$options = array(
 						'cacheDir' => CACHE . "/",
@@ -156,9 +177,6 @@
 				if ( ! $cl->get($url)) {
 					$cl->save($render);
 				}
-				header(sprintf("Content-Length: %d", strlen($render)));
-				print $render;
-				if ($this->_get_comment_pref() == 'yes') echo "<!-- Cache generated: ". $cl->_fileName	." -->";
 				exit();
 			}
 		}
@@ -224,5 +242,10 @@
 				}
 			}
 			return $ignored;
+		}
+		
+		private function _get_compression_pref()
+		{
+				return $this->_Parent->Configuration->get('enable-gzip', 'cachelite');			
 		}
 	}
