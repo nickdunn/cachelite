@@ -63,5 +63,3 @@ This will flush the cache of pages using any entries from this event's *section*
 ## Compatibility
 
 Due to changes in the Symphony core, version 1.0.0+ of the CacheLite extension only works with Symphony 2.0.6+. Versions prior to 1.0.0 are compatible with Symphony 2.0.1-2.0.3. If you're using 2.0.4-5 then you should upgrade :p
-
-TEST
